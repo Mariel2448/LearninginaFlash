@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 import java.util.List;
@@ -17,6 +19,41 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        findViewById(R.id.flashcard_question).setOnClickListener(new View.OnClickListener() {
+
+                                                                     @Override
+                                                                     public void onClick(View v) {
+                                                                         findViewById(R.id.flashcard_question).setCameraDistance(25000);
+
+                                                                         final View questionSideView = findViewById(R.id.flashcard_question);
+
+                                                                         questionSideView.animate()
+                                                                                 .rotation(90)
+                                                                                 .setDuration(200)
+                                                                                 .withEndAction(
+                                                                                         new Runnable() {
+                                                                                             @Override
+                                                                                             public void run() {
+                                                                                                 questionSideView.setVisibility(View.INVISIBLE);
+                                                                                                 findViewById(R.id.flashcard_answer).setVisibility(View.VISIBLE);
+
+                                                                                                 findViewById(R.id.flashcard_answer).setRotation(-90);
+                                                                                                 findViewById(R.id.flashcard_answer).animate()
+                                                                                                         .rotation(0)
+                                                                                                         .setDuration(200)
+                                                                                                         .start();
+                                                                                             }
+                                                                                         }
+                                                                                 ).start();
+                                                                         //          findViewById(R.id.flashcard_answer).setVisibility(View.VISIBLE);
+                                                                         //          findViewById(R.id.flashcard_question).setVisibility(View.INVISIBLE);
+
+                                                                     }
+                                                                 });
+        
+
+
 
         flashcardDatabase = new FlashcardDatabase(this);
         allFlashcards = flashcardDatabase.getAllCards();
@@ -56,7 +93,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // advance our pointer index so we can show the next card
+                final Animation leftOutAnim = AnimationUtils.loadAnimation(v.getContext(), R.anim.left_out);
+                final Animation RightInAnim = AnimationUtils.loadAnimation(v.getContext(), R.anim.right_in);
+                findViewById(R.id.flashcard_question).startAnimation(leftOutAnim);
+
+                leftOutAnim.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        findViewById(R.id.flashcard_question).startAnimation(RightInAnim);
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
                 currentCardDisplayedIndex++;
+                findViewById(R.id.flashcard_question).startAnimation(RightInAnim);
 
                 // make sure we don't get an IndexOutOfBoundsError if we are viewing the last indexed card in our list
                 if (currentCardDisplayedIndex > allFlashcards.size() - 1) {
